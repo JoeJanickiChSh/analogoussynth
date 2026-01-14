@@ -52,6 +52,6 @@ float as_vdiv(float V, float R1, float R2)
 
 float as_opamp_process(as_DspOpamp* opamp, float Vplus, float Vminus)
 {
-	opamp->Vout;
+	opamp->Vout += OPAMP_GAIN * (Vplus - Vminus);
 }
 

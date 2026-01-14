@@ -1,6 +1,7 @@
 #pragma once
 
 #define MIN_VOLTAGE 0.001
+#define OPAMP_GAIN 1
 
 typedef struct as_DspCapacitor
 {

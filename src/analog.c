@@ -9,13 +9,13 @@
 * where coef = 1 - exp( -1 / (SAMPLERATE * r * c) ).
 * Since 1 / (SAMPLERATE * r * c) yields small values for most r and c values (< 1),
 * the taylor expansion of e^x can be used:
-*   x = -1 / SAMPLERATE * r * c
-*   coef = x - 0.5 * x * x
+*   x = 1 / SAMPLERATE * r * c
+*   coef = x - 0.5 * x * x   // coef = 1 - 1 - (-x) - 0.5 * (-x)^2
 */
 
 void as_capacitor_setR(as_DspCapacitor* cap, float R)
 {
-	float x = -1.0 / (SAMPLERATE * R * cap->C);
+	float x = 1.0 / (SAMPLERATE * R * cap->C);
 	cap->coef = x - 0.5 * x * x;
 }
 

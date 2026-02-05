@@ -1,5 +1,7 @@
 #include "analog.h"
 #include "dsp.h"
+#include "keyboard.h"
+#include <stdio.h>
 
 /**
 * The voltage across a capacitor is described the formula:
@@ -16,7 +18,12 @@
 void as_capacitor_setR(as_DspCapacitor* cap, float R)
 {
 	float x = 1.0 / (SAMPLERATE * R * cap->C);
+	if (x > 1)
+		x = 1;
+	if (x < 0)
+		x = 0;
 	cap->coef = x - 0.5 * x * x;
+	
 }
 
 float as_capacitor_process(as_DspCapacitor* cap, float Vin)
@@ -53,5 +60,42 @@ float as_vdiv(float V, float R1, float R2)
 float as_opamp_process(as_DspOpamp* opamp, float Vplus, float Vminus)
 {
 	opamp->Vout += OPAMP_GAIN * (Vplus - Vminus);
+	if (opamp->Vout < -SUPPLY_VOLTAGE * OPAMP_CLIPPING)
+		opamp->Vout = -SUPPLY_VOLTAGE * OPAMP_CLIPPING;
+	else if (opamp->Vout > SUPPLY_VOLTAGE * OPAMP_CLIPPING)
+		opamp->Vout = SUPPLY_VOLTAGE * OPAMP_CLIPPING;
 }
 
+
+
+
+
+/**
+* Resistor ladder connected by switches
+* 
+*  Vcc -------+
+*             |
+*            [ ] Ra
+*             |       /
+*             +------o o--+         +------+
+*             |           |         | |\   |
+*            [ ] Rb       |         +-|-\  |
+*             |       /   |           |  >-+---
+*             +------o o--+---+-------|+/
+*             |               |       |/
+*            [ ] Ra           = C
+*             |               |
+*             V               V
+*/
+void as_keyboardcap_vr(float* Vout, float* Rout, int note)
+{
+	if (note < 0) {
+		*Vout = 0.0f;
+		*Rout= LEAKAGE_R;
+		return;
+	}
+	float Rl = KEYBOARD_TUNE_R + note * KEYBOARD_STEP_R;
+	float Ru = KEYBOARD_TUNE_R + (KB_NUM_KEYS - note - 1) * KEYBOARD_STEP_R;
+	*Vout = as_vdiv(SUPPLY_VOLTAGE, Rl, Ru);
+	*Rout = as_parallelR(Rl, Ru);
+}

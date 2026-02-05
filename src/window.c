@@ -45,6 +45,19 @@ bool as_windowinit(as_Window* window)
 	window->surface = SDL_GetWindowSurface(window->sdlwindow);
 
 	window->isopen = true;
+
+	window->colorkey = SDL_MapRGB(window->surface->format, 255, 0, 255);
+	window->animations.keys = as_animationnew("assets/keys.bmp", 32, 64, window->colorkey);
+
+	if (!(window->animations.keys))
+	{
+		printf("File load error.\n");
+		return true;
+	}
+	
+	for (int i = 0; i < KB_NUM_KEYS; i++)
+		window->keystates[i] = 0.0f;
+	
 	
 	return false;
 }
@@ -74,8 +87,42 @@ void as_windowupdate(as_Window* window, bool* keyboard)
 			break;
 		}
 	}
+	for (int i = 0; i < KB_NUM_KEYS; i++)
+		window->keystates[i] += 0.5 * ((keyboard[i] ? 7.0f : 0.0f) - window->keystates[i]);
+
+	window->keynum = -1;
+	for ( int i = KB_NUM_KEYS - 1; i >= 0; i--)
+	{
+		if (keyboard[i])
+		{
+			window->keynum = i;
+			break;
+		}
+	}
+
+	SDL_Rect screenarea = {0, 0, WINDOW_WIDTH_DEFAULT, WINDOW_HEIGHT_DEFAULT};
+	SDL_FillRect(window->surface, &screenarea, 0);
+
+	int keyheight = WINDOW_HEIGHT_DEFAULT - window->animations.keys->height - 1;
+	int keywidth = window->animations.keys->width;
+	
+	int xind = 0;
+	for (int i = 0; i < KB_NUM_KEYS; i++) {
+		int octavekey = i % 12;
+		int drawkey = 0;
+		if (octavekey == 1 || octavekey == 3 || octavekey == 6 || octavekey == 8 || octavekey == 10) {
+			drawkey = 2;
+			xind--;
+		}
+		if (octavekey == 4 || octavekey == 11)
+			drawkey = 1;
+		as_animationdraw(window->animations.keys,xind*keywidth, keyheight , window->keystates[i], drawkey, window->surface);
+		xind ++;
+	}
+
 	SDL_UpdateWindowSurface(window->sdlwindow);
 	SDL_Delay(1000 / WINDOW_FRAMERATE);
+	window->frametimer++;
 }
 
 void as_windowclose(as_Window* window)

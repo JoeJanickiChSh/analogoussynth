@@ -10,6 +10,7 @@ bool as_guiinit(as_Gui* gui, int colorkey)
 	gui->anim.knob = as_animationnew("assets/knob.bmp", 64, 64, colorkey);
 	gui->anim.background = as_animationnew("assets/background.bmp", 800, 600, colorkey);
 	gui->anim.font = as_animationnew("assets/font.bmp", 16, 16, colorkey);
+	gui->anim.jack = as_animationnew("assets/jack.bmp", 64, 64, colorkey);
 	gui->prevmousedown = false;
 	gui->prevmousex = 0;
 	gui->prevmousey = 0;
@@ -44,6 +45,14 @@ void as_guiaddtext(as_Gui* gui, int x, int y, const char* str)
 	nd->obj.text.len = strlen(str);
 }
 
+void as_guiaddjack(as_Gui* gui, int x, int y, int color)
+{
+	as_GuiNode* nd = as_guiaddnode(gui, AS_GUI_JACK);
+	nd->obj.jack.x = x;
+	nd->obj.jack.y = y;
+	nd->obj.jack.color = color;
+}
+
 void as_guifree(as_Gui* gui)
 {
 	as_GuiNode* nd = gui->head;
@@ -56,6 +65,7 @@ void as_guifree(as_Gui* gui)
 	gui->head = NULL;
 	as_animationfree(gui->anim.key);
 	as_animationfree(gui->anim.knob);
+	as_animationfree(gui->anim.jack);
 	as_animationfree(gui->anim.font);
 	as_animationfree(gui->anim.background);
 }
@@ -98,6 +108,9 @@ void as_guidraw(as_Gui* gui, SDL_Surface* surface, bool mousedown, int mousex, i
 				if (nd->obj.text.str[i] >= 'A' && nd->obj.text.str[i] <= 'Z')
 					as_animationdraw(gui->anim.font, i * gui->anim.font->width + nd->obj.text.x, nd->obj.text.y, 0, nd->obj.text.str[i] - 'A', surface);
 			}
+			break;
+		case AS_GUI_JACK:
+			as_animationdraw(gui->anim.jack, nd->obj.jack.x, nd->obj.jack.y, 0, 0, surface);
 			break;
 		}
 	}

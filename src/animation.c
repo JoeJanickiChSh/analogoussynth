@@ -23,5 +23,6 @@ void as_animationdraw(as_Animation* anim, int x, int y, int framex, int framey, 
 
 void as_animationfree(as_Animation* anim)
 {
+	free(anim);
 }
 

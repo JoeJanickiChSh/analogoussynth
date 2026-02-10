@@ -24,7 +24,7 @@ void print_sdl_error()
 	printf("SDL_Error: %s\n", SDL_GetError());
 }
 
-bool as_windowinit(as_Window* window)
+bool as_windowinit(as_Window* window, as_DspData* dspdata)
 {
 	window->isopen = false;
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -43,17 +43,18 @@ bool as_windowinit(as_Window* window)
 	}
 
 	window->surface = SDL_GetWindowSurface(window->sdlwindow);
+	window->dspdata = dspdata;
 
 	window->isopen = true;
 
 	window->colorkey = SDL_MapRGB(window->surface->format, 255, 0, 255);
-	window->animations.keys = as_animationnew("assets/keys.bmp", 32, 64, window->colorkey);
-
-	if (!(window->animations.keys))
+	
+	if (as_guiinit(&window->gui, window->colorkey))
 	{
-		printf("File load error.\n");
+		printf("Error opening animation files.\n");
 		return true;
 	}
+	
 	
 	for (int i = 0; i < KB_NUM_KEYS; i++)
 		window->keystates[i] = 0.0f;
@@ -85,6 +86,18 @@ void as_windowupdate(as_Window* window, bool* keyboard)
 			if (note_index != -1)
 				keyboard[note_index] = false;
 			break;
+
+		case SDL_MOUSEMOTION: window->mousex = event.motion.x;
+			window->mousey = event.motion.y;
+			break;
+
+		case SDL_MOUSEBUTTONDOWN:
+			window->mousedown = true;
+			break;
+
+		case SDL_MOUSEBUTTONUP:
+			window->mousedown = false;
+			break;
 		}
 	}
 	for (int i = 0; i < KB_NUM_KEYS; i++)
@@ -100,11 +113,10 @@ void as_windowupdate(as_Window* window, bool* keyboard)
 		}
 	}
 
-	SDL_Rect screenarea = {0, 0, WINDOW_WIDTH_DEFAULT, WINDOW_HEIGHT_DEFAULT};
-	SDL_FillRect(window->surface, &screenarea, 0);
+	as_guidraw(&window->gui, window->surface, window->mousedown, window->mousex, window->mousey);
 
-	int keyheight = WINDOW_HEIGHT_DEFAULT - window->animations.keys->height - 1;
-	int keywidth = window->animations.keys->width;
+	int keyheight = WINDOW_HEIGHT_DEFAULT - window->gui.anim.key->height - 1;
+	int keywidth = window->gui.anim.key->width;
 	
 	int xind = 0;
 	for (int i = 0; i < KB_NUM_KEYS; i++) {
@@ -116,7 +128,7 @@ void as_windowupdate(as_Window* window, bool* keyboard)
 		}
 		if (octavekey == 4 || octavekey == 11)
 			drawkey = 1;
-		as_animationdraw(window->animations.keys,xind*keywidth, keyheight , window->keystates[i], drawkey, window->surface);
+		as_animationdraw(window->gui.anim.key,150+xind*keywidth, keyheight , window->keystates[i], drawkey, window->surface);
 		xind ++;
 	}
 
@@ -127,6 +139,7 @@ void as_windowupdate(as_Window* window, bool* keyboard)
 
 void as_windowclose(as_Window* window)
 {
+	as_guifree(&window->gui);
 	SDL_Quit();
 }
 

@@ -2,10 +2,11 @@ CC = gcc
 LINKFLAGS = -lSDL2
 INCFLAGS = -Iinclude
 EXECUTABLE = Analogous
+DBGFLAGS = -g
 SRC = src/*.c
 
 all:
-	$(CC) $(SRC) $(INCFLAGS) $(LINKFLAGS) -o $(EXECUTABLE)
+	$(CC) $(DBGFLAGS) $(SRC) $(INCFLAGS) $(LINKFLAGS) -o $(EXECUTABLE)
 
 run:
 	make

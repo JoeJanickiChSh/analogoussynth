@@ -1,5 +1,6 @@
 Analogous
 *.swp
+*.vim
 
 # Prerequisites
 *.d

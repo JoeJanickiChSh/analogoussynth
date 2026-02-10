@@ -1,6 +1,8 @@
 #pragma once
+#include "dsp.h"
 #include "animation.h"
 #include "keyboard.h"
+#include "gui.h"
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
@@ -8,15 +10,6 @@
 #define WINDOW_TITLE "Analogous"
 #define WINDOW_WIDTH_DEFAULT 800
 #define WINDOW_HEIGHT_DEFAULT 600
-
-/**
-* @struct asWindowAnimations
-* @brief Stores all animations
-*/
-typedef struct as_WindowAnimations
-{
-	as_Animation* keys; /** Keyboard keys **/
-} as_WindowAnimations;
 
 /**
 * @struct as_Window
@@ -28,21 +21,26 @@ typedef struct as_Window
 	SDL_Window* sdlwindow; /** The SDL window object */
 	SDL_Surface* surface; /** The window's rendering surface */
 	int colorkey; /** The transparency key in the screen's pixel format **/
-	as_WindowAnimations animations; /** Structure with all drawable animations **/
+	as_Gui gui;
 	float keystates[KB_NUM_KEYS]; /** The animation state of each keyboard key **/
 	unsigned int frametimer; /** Counts the current frame **/
 	int keynum; /** The number of the highest pressed key (-1 if none) **/
+	bool mousedown;
+	int mousex;
+	int mousey;
+	as_DspData* dspdata;
 } as_Window;
 
 /**
 * @brief Initializes the window.
 *
 * @param window  pointer to the window structure.
+* @param dspdata  pointer to the DSP data structure.
 *
 * @return false on success
 * @return true on failure
 */
-bool as_windowinit(as_Window* window);
+bool as_windowinit(as_Window* window, as_DspData* dspdata);
 
 /**
 * @brief Updates the window, including rendering and events.
